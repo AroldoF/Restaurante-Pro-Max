@@ -1,4 +1,4 @@
-from sqlamodel import Session,select
+from sqlmodel import Session,select
 from ..models.item import Item
 from ..schemas.item import ItemCreate, ItemUpdate
 
