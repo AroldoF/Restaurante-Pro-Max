@@ -11,6 +11,13 @@ uv sync
 uv run uvicorn main:app --reload --port 8001
 ```
 
+## Como rodar com Docker
+
+```bash
+docker build -t items-service .
+docker run -p 8001:8001 items-service
+```
+
 ## Endpoints
 
 | Método | Rota | Descrição |
