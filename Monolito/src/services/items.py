@@ -7,13 +7,13 @@ from ..models.items import Item
 
 
 class ItemService:
-    def __init__(self, session: Session):
-        self.repository = ItemRepository(session)
+    def __init__(self, repository: ItemRepository):
+        self.repository = repository
 
-    def list_items(self) -> list[Item]:
-        return self.repository.get_all()
+    def list(self) -> list[Item]:
+        return self.repository.list()
 
-    def get_item_by_id(self, item_id: int) -> Item:
+    def get_by_id(self, item_id: int) -> Item:
         item = self.repository.get_by_id(item_id)
         if not item:
             raise HTTPException(
@@ -21,17 +21,49 @@ class ItemService:
             )
         return item
 
-    def create_item(self, payload: ItemCreate) -> Item:
+    def list_by_ids(self, item_ids: list[int]):
+        items = self.repository.list_by_ids(item_ids)
+
+        if len(items) != len(set(item_ids)):
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail="One or more items not found",
+            )
+
+        return items
+
+    def create(self, payload: ItemCreate) -> Item:
         return self.repository.create(payload)
 
-    def update_item(self, item_id: int, payload: ItemCreate) -> Item:
-        item = self.get_item_by_id(item_id)  # Já valida se existe ou joga 404
-        return self.repository.update(item, payload, partial=False)
+    def update(self, item_id: int, payload: ItemCreate) -> Item:
+        item = self.get_by_id(item_id)  
+        return self.repository.update(item, payload)
 
-    def partial_update_item(self, item_id: int, payload: ItemUpdate) -> Item:
-        item = self.get_item_by_id(item_id)
-        return self.repository.update(item, payload, partial=True)
-
-    def delete_item(self, item_id: int) -> None:
-        item = self.get_item_by_id(item_id)
+    def delete(self, item_id: int) -> None:
+        item = self.get_by_id(item_id)
         self.repository.delete(item)
+
+    def reduce_stock_bulk(
+        self,
+        items_quantity: dict[int, int],
+    ) -> list[Item]:
+        items = self.list_by_ids(list(items_quantity.keys()))
+
+        for item in items:
+            quantity = items_quantity[item.id]
+
+            if quantity <= 0:
+                raise HTTPException(
+                    status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+                    detail="Quantity must be greater than zero",
+                )
+
+            if item.stock < quantity:
+                raise HTTPException(
+                    status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+                    detail=f"Insufficient stock for item {item.id}",
+                )
+
+            item.stock -= quantity
+
+        return self.repository.save_all(items)

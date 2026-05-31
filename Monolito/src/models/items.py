@@ -6,6 +6,7 @@ class ItemBase(SQLModel):
     name: str = Field(max_length=255, min_length=3)
     stock: int = Field(default=0, ge=0)
     price: Decimal = Field(default=0, max_digits=5, decimal_places=2, ge=0)
+    is_active: bool = Field(default=True)
 
 
 class Item(ItemBase, table=True):

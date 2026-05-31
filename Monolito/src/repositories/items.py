@@ -7,15 +7,26 @@ class ItemRepository:
     def __init__(self, session: Session):
         self.session = session
 
-    def get_all(self) -> list[Item]:
-        return self.session.exec(select(Item)).all()
+    def list(self) -> list[Item]:
+        statement = select(Item).where(Item.is_active == True)
+        return self.session.exec(statement).all()
 
     def get_by_id(self, item_id: int) -> Item | None:
-        return self.session.exec(select(Item).where(Item.id == item_id)).first()
+        statement = select(Item).where(Item.id == item_id, Item.is_active == True)
+        return self.session.exec(statement).first()
 
-    def get_by_ids(self, items_ids: list[int]) -> list[Item]:
-        statement = select(Item).where(Item.id.in_(items_ids))
+    def list_by_ids(self, item_ids: list[int]) -> list[Item]:
+        statement = select(Item).where(Item.id.in_(item_ids), Item.is_active == True)
         return self.session.exec(statement).all()
+
+    def save_all(self, items: list[Item]) -> list[Item]:
+        self.session.add_all(items)
+        self.session.commit()
+
+        for item in items:
+            self.session.refresh(item)
+
+        return items
 
     def create(self, payload: ItemCreate) -> Item:
         item = Item(**payload.model_dump())
@@ -25,10 +36,9 @@ class ItemRepository:
         return item
 
     def update(
-        self, item: Item, payload: ItemCreate | ItemUpdate, partial: bool = False
+        self, item: Item, payload: ItemUpdate
     ) -> Item:
-        # exclude_none=True se for PATCH (parcial)
-        item_data = payload.model_dump(exclude_none=partial)
+        item_data = payload.model_dump(exclude_none=True)
 
         for key, value in item_data.items():
             setattr(item, key, value)
@@ -38,6 +48,11 @@ class ItemRepository:
         self.session.refresh(item)
         return item
 
-    def delete(self, item: Item) -> None:
-        self.session.delete(item)
+    def delete(self, item: Item):
+        item.is_active = False
+
+        self.session.add(item)
         self.session.commit()
+
+        return None
+        
