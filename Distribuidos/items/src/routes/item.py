@@ -21,14 +21,22 @@ def list_items(service: ItemService = Depends(get_item_service)):
 def create_item(payload: ItemCreate, service: ItemService = Depends(get_item_service)):
   return service.create(payload)
 
-@router.get("/{item_id}", response_model=ItemDetail)
+# Endpoint interno — chamado pelo orders-service ao confirmar pagamento
+@router.patch("/stock/reduce/", response_model=list[ItemDetail])
+def reduce_stock(
+    reductions: list[ItemStockReduce],
+    service: ItemService = Depends(get_item_service),
+):
+    return service.reduce_stock_bulk(reductions)
+
+@router.get("/{item_id}/", response_model=ItemDetail)
 def get_item(item_id: int, service: ItemService = Depends(get_item_service)):
   return service.get_by_id(item_id)
 
-@router.put("/{item_id}", response_model=ItemDetail)
+@router.put("/{item_id}/", response_model=ItemDetail)
 def update_item(
   item_id: int, 
-  payload: ItemUpdate, 
+  payload: ItemCreate, 
   service: ItemService = Depends(get_item_service),
 ):
   return service.update(item_id, payload)
@@ -48,10 +56,3 @@ def delete_item(item_id: int, service: ItemService = Depends(get_item_service)):
     service.delete(item_id)
 
 
-# Endpoint interno — chamado pelo orders-service ao confirmar pagamento
-@router.patch("/stock/reduce/", response_model=list[ItemDetail])
-def reduce_stock(
-    reductions: list[ItemStockReduce],
-    service: ItemService = Depends(get_item_service),
-):
-    return service.reduce_stock_bulk(reductions)
