@@ -3,7 +3,8 @@ from ..schemas.payments import PaymentCreate, PaymentCreatePrivate, PaymentStatu
 from fastapi import HTTPException
 from http import HTTPStatus
 from ..integrations.orders import OrdersIntegrations
-
+from messaging.events.payment_confirm import PaymentConfirmEvent
+from messaging.publishers.payment_confirm import publisher_payment_confirm
 
 
 class PaymentService:
@@ -57,16 +58,14 @@ class PaymentService:
         payment =self.repository.change_status(payment, PaymentStatus.PAID)
 
 
-        ## ajustar pois a criação da notificação é via mensageria 
+        event = PaymentConfirmEvent(
+            order_id=payment.order_id,
+            payment_id=payment.id,
+            status='PAID'
+        )
 
-        order = self.order_service.mark_as_finished(payment.order_id)
-        
-        # self.notification_service.create(
-        #    NotificationCreate(
-        #     order_id=order.id,
-        #     message=f"Pedido {order.id} foi pago! Pode preparar!")
-        # )
-        
+        publisher_payment_confirm(event)
+
         return payment
 
         
