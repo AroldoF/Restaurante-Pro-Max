@@ -4,13 +4,16 @@ from fastapi import HTTPException
 from http import HTTPStatus
 from ..integrations.orders import OrdersIntegrations
 from messaging.events.payment_confirm import PaymentConfirmEvent
-from messaging.publishers.payment_confirm import publisher_payment_confirm
+from dataclasses import asdict
+from infra.messaging.publisher import RabbitMQPublisher
+from infra.messaging.constants import PAYMENT_ROUTING_KEY
 
 
 class PaymentService:
-    def __init__(self, repository: PaymentRepository, order_integration: OrdersIntegrations):
+    def __init__(self, repository: PaymentRepository, order_integration: OrdersIntegrations, event_publisher: RabbitMQPublisher):
         self.repository = repository
         self.order_integration = order_integration
+        self.event_publisher = event_publisher
 
 
     def list(self):
@@ -64,7 +67,10 @@ class PaymentService:
             status='PAID'
         )
 
-        publisher_payment_confirm(event)
+        self.event_publisher.publish(
+            routing_key=PAYMENT_ROUTING_KEY,
+            message=asdict(event)
+        )
 
         return payment
 

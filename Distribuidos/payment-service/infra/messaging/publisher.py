@@ -13,18 +13,7 @@ class RabbitMQPublisher:
             durable=True,
         )
 
-    def publish(self, queue: str, routing_key: str, message: dict):
-        self.channel.queue_declare(
-            queue=queue,
-            durable=True,
-        ) # o ideal é que não tenha nada relacionado a fila, pois ele vai publicar apenas para o exchange com a routing key
-
-        self.channel.queue_bind(
-            exchange=PAYMENT_EXCHANGE,
-            queue=queue,
-            routing_key=routing_key,
-        )
-
+    def publish(self, routing_key: str, message: dict):
         self.channel.basic_publish(
             exchange=PAYMENT_EXCHANGE,
             routing_key=routing_key,
