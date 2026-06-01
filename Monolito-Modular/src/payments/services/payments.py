@@ -4,10 +4,11 @@ from ...notifications.interfaces.notifications import NotificationServiceInterfa
 from ..schemas.payments import PaymentCreate, PaymentCreatePrivate, PaymentStatus
 from fastapi import HTTPException
 from http import HTTPStatus
-
+from sqlmodel import Session
 
 class PaymentService:
-    def __init__(self, repository: PaymentRepositoryInterface, order_service: OrderServiceInterface, notification_service: NotificationServiceInterface):
+    def __init__(self, session: Session, repository: PaymentRepositoryInterface, order_service: OrderServiceInterface, notification_service: NotificationServiceInterface):
+        self.session = session
         self.repository = repository
         self.order_service = order_service
         self.notification_service = notification_service
@@ -41,32 +42,48 @@ class PaymentService:
             total_amount=order.total_amount,
         )
 
-        return self.repository.create(data_payment)
+        payment = self.repository.create(data_payment)
+        self.session.commit()
+        self.session.refresh(payment)
+
+        return payment 
 
     def confirm(self, payment_id: int):
         payment = self.get_by_id(payment_id)
+
         if payment.status not in (PaymentStatus.PENDING, PaymentStatus.FAILED):
             raise HTTPException(status_code=HTTPStatus.UNPROCESSABLE_ENTITY, detail="transaction invalid")
 
-        payment =self.repository.change_status(payment, PaymentStatus.PAID)
-        if not payment:
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to confirm payment"
-            )
+        try:
+            payment =self.repository.change_status(payment, PaymentStatus.PAID)
+            if not payment:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Failed to confirm payment"
+                )
 
-        order = self.order_service.mark_as_finished(payment.order_id)
-        if not order:
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to finish order"
-            )
-        notificarion = self.notification_service.notify_order_paid(order.id)
-        if not notificarion:
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to create notification"
-            )
-        return payment
-
+            order = self.order_service.mark_as_finished(payment.order_id)
+            if not order:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Failed to finish order"
+                )
+                
+            notification = self.notification_service.notify_order_paid(order.id)
+            if not notification:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Failed to create notification"
+                )
         
+            self.session.commit()
+            self.session.refresh(payment)
+
+            return payment
+            
+        except Exception:
+            self.session.rollback()
+            raise
+
+        return payment
+            

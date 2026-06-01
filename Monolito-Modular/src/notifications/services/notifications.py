@@ -2,10 +2,11 @@ from ..interfaces.notifications import NotificationRepositoryInteface
 from fastapi import HTTPException
 from http import HTTPStatus
 from ..schemas.notifications import NotificationCreate
-
+from sqlmodel import Session
 
 class NotificationService:
-    def __init__(self, repository: NotificationRepositoryInteface):
+    def __init__(self, session: Session, repository: NotificationRepositoryInteface):
+        self.session = session
         self.repository = repository
 
     def list_all(self):
@@ -20,7 +21,12 @@ class NotificationService:
         return notification
 
     def create(self, data: NotificationCreate):
-        return self.repository.create(data)
+        notification = self.repository.create(data)
+        
+        self.session.commit()
+        self.session.refresh(notification)
+
+        return notification 
 
     def notify_order_paid(self, order_id: int):
         notification = NotificationCreate(

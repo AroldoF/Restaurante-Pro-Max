@@ -39,8 +39,6 @@ class OrderRepository:
 
 
         self.session.add(order)
-        self.session.commit()
-        self.session.refresh(order)
 
         return order
 
@@ -51,14 +49,11 @@ class OrderRepository:
             setattr(order, key, value)
 
         self.session.add(order)
-        self.session.commit()
-        self.session.refresh(order)
 
         return order
 
     def delete(self, order: Order) -> None:
         self.session.delete(order)
-        self.session.commit()
 
     def change_status(
         self,
@@ -68,7 +63,5 @@ class OrderRepository:
         order.status = status
 
         self.session.add(order)
-        self.session.commit()
-        self.session.refresh(order)
 
         return order

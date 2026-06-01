@@ -23,19 +23,14 @@ class PaymentRepository:
         return self.session.exec(statement).first()
 
     def create(self, data: PaymentCreatePrivate) -> Payment:
-        pay = Payment(**data.model_dump())
+        payment = Payment(**data.model_dump())
 
-        self.session.add(pay)
-        self.session.commit()
-        self.session.refresh(pay)
+        self.session.add(payment)
 
-        return pay
+        return payment
 
     def change_status(self, payment: Payment, status: PaymentStatus) -> Payment:
         payment.status = status
-
-        self.session.commit()
-        self.session.refresh(payment)
 
         return payment
         

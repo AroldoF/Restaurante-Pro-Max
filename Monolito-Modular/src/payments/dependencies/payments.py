@@ -13,7 +13,7 @@ def get_payment_service(
     order_service = get_order_service(session)
     notification_service = get_notification_service(session)
     payment_repository = PaymentRepository(session)
-    return PaymentService(payment_repository, order_service, notification_service)
+    return PaymentService(session, payment_repository, order_service, notification_service)
 
 PaymentServiceDep = Annotated[
     PaymentService,

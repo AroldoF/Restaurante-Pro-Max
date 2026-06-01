@@ -17,7 +17,5 @@ class NotificationRepository:
         notification = Notification(**data.model_dump())
 
         self.session.add(notification)
-        self.session.commit()
-        self.session.refresh(notification)
 
         return notification

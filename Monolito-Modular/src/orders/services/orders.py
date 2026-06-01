@@ -12,9 +12,11 @@ from ...items.interfaces.items import ItemRepositoryInterface
 from decimal import Decimal
 from fastapi import HTTPException
 from http import HTTPStatus
+from sqlmodel import Session
 
 class OrderService:
-    def __init__(self, repository: OrderRepositoryInterface, item_service: ItemRepositoryInterface):
+    def __init__(self, session: Session, repository: OrderRepositoryInterface, item_service: ItemRepositoryInterface):
+        self.session = session
         self.repository = repository
         self.item_service = item_service
 
@@ -64,13 +66,17 @@ class OrderService:
         item_ids = [item.item_id for item in data.order_items]
 
         amount = self.calculate_amount(item_ids, data)
-
-        return self.repository.create(
+        order = self.repository.create(
             OrderCreatePrivate(
                 **data.model_dump(),
                 total_amount=amount,
             )
         )
+
+        self.session.commit()
+        self.session.refresh(order)
+
+        return order
 
     def update(
         self,
@@ -78,15 +84,25 @@ class OrderService:
         data: OrderUpdate,
     ) -> Order | None:
         order = self.get_by_id(order_id)
-        return self.repository.update(order, data)
 
-    def delete(self, order_id: int) -> bool:
+        self.repository.update(order, data)
+
+        self.session.commit()
+        self.session.refresh(order)
+
+        return order
+
+    def delete(self, order_id: int) -> None:
         order = self.get_by_id(order_id)
-        return self.repository.delete(order)
+        self.repository.delete(order)
+        self.session.commit()
+
+        return 
 
     def mark_as_finished(self, order_id: int):
-        order = self.update(
-            order_id,
+        order = self.get_by_id(order_id)
+        order = self.repository.update(
+            order,
             OrderUpdate(status=OrderStatus.FINISHED),
         )
 

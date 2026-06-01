@@ -13,6 +13,7 @@ def get_order_service(
     item_service = get_item_service(session)
 
     return OrderService(
+        session,
         order_repository,
         item_service,
     )

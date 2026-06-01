@@ -9,7 +9,7 @@ def get_notification_service(
     session: Session = Depends(get_session),
 ) -> NotificationService:
     notification_repository = NotificationRepository(session)
-    return NotificationService(notification_repository)
+    return NotificationService(session, notification_repository)
 
 NotificationServiceDep = Annotated[
     NotificationService,
