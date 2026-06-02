@@ -1,4 +1,5 @@
 import pika
+from app.config.core import settings
 
 def get_connection():
 
@@ -8,8 +9,8 @@ def get_connection():
     )
 
     parameters = pika.ConnectionParameters(
-        host='rabbitmq',
-        port=5672,
+        host=settings.RABBITMQ_HOST,
+        port=settings.RABBITMQ_PORT,
         credentials=credentials,
     )
 

@@ -21,7 +21,7 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     description=settings.DESCRIPTION,
     version=settings.VERSION,
-    lifespan=lifespan,
+    lifespan=lifespan
 )
 
 
