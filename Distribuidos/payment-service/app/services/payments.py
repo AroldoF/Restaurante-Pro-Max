@@ -7,10 +7,12 @@ from app.messaging.events.payment_confirm import PaymentConfirmEvent
 from dataclasses import asdict
 from infra.messaging.publisher import RabbitMQPublisher
 from infra.messaging.constants import PAYMENT_ROUTING_KEY
+from sqlmodel import Session
 
 
 class PaymentService:
-    def __init__(self, repository: PaymentRepository, order_integration: OrdersIntegrations, event_publisher: RabbitMQPublisher):
+    def __init__(self, session: Session, repository: PaymentRepository, order_integration: OrdersIntegrations, event_publisher: RabbitMQPublisher):
+        self.session = session
         self.repository = repository
         self.order_integration = order_integration
         self.event_publisher = event_publisher
@@ -41,7 +43,7 @@ class PaymentService:
             )
         
         
-        total_amount = self.order_integration.get_order_price(data.order_id)
+        total_amount = 10.00#self.order_integration.get_order_price(data.order_id)
 
         data_payment = PaymentCreatePrivate(
             **data.model_dump(),
@@ -58,19 +60,30 @@ class PaymentService:
         if payment.status not in (PaymentStatus.PENDING, PaymentStatus.FAILED):
             raise HTTPException(status_code=HTTPStatus.UNPROCESSABLE_ENTITY, detail="transaction invalid")
 
-        payment =self.repository.change_status(payment, PaymentStatus.PAID)
+        try:
 
+            payment =self.repository.change_status(payment, PaymentStatus.PAID)
+                                        
+            event = PaymentConfirmEvent(
+                order_id=payment.order_id,
+                payment_id=payment.id,
+                status='PAID'
+            )
 
-        event = PaymentConfirmEvent(
-            order_id=payment.order_id,
-            payment_id=payment.id,
-            status='PAID'
-        )
+            self.event_publisher.publish(
+                routing_key=PAYMENT_ROUTING_KEY,
+                message=asdict(event)
+            )
 
-        self.event_publisher.publish(
-            routing_key=PAYMENT_ROUTING_KEY,
-            message=asdict(event)
-        )
+            self.session.commit()
+            self.session.refresh(payment)
+
+        except Exception:
+            self.session.rollback()
+            raise HTTPException(
+                status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+                detail="Failed to confirm payment"
+            )
 
         return payment
 
