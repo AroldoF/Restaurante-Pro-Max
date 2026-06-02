@@ -9,6 +9,7 @@ RUN uv sync --no-dev
 
 COPY main.py .
 COPY app/ ./app/
+COPY infra/ ./infra/
 
 EXPOSE 8010
 

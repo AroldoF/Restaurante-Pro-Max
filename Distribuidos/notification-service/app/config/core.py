@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     VERSION: str = '0.1.0'
 
     DATABASE_URL: str
+
+    RABBITMQ_HOST: str
+    RABBITMQ_PORT: int
     
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
