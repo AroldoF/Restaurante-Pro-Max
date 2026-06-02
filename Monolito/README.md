@@ -149,3 +149,50 @@ Os principais pontos avaliados são:
 | Baixo acoplamento | ❌ | ✅ |
 | Evolução para microsserviços | ⚠️ Mais difícil | ✅ Mais simples |
 | Dependência de abstrações | ❌ | ✅ |
+
+## 🔍 Testes
+
+| Métrica                 | Monolito         | Monolito Modular |
+| ----------------------- | ---------------- | ---------------- |
+| Requisições             | 500              | 500              |
+| Usuários Virtuais (VUs) | 50               | 50               |
+| Taxa de Sucesso         | 100%             | 100%             |
+| Tempo Médio             | **454.33 ms**    | 549.25 ms        |
+| Tempo Mediano           | **375.15 ms**    | 438.35 ms        |
+| Tempo Mínimo            | **35.61 ms**     | 37.82 ms         |
+| Tempo Máximo            | **2.53 s**       | 3.60 s           |
+| P90                     | **818.34 ms**    | 991.75 ms        |
+| P95                     | **1.00 s**       | 1.30 s           |
+| Throughput (req/s)      | **104.23 req/s** | 81.08 req/s      |
+| Tempo Total do Teste    | **4.8 s**        | 6.2 s            |
+| Falhas HTTP             | 0%               | 0%               |
+
+### Diferença percentual
+
+| Métrica     | Diferença                               |
+| ----------- | --------------------------------------- |
+| Tempo Médio | Monolito ≈ **17,3% mais rápido**        |
+| Throughput  | Monolito ≈ **28,6% mais requisições/s** |
+| P90         | Monolito ≈ **17,5% melhor**             |
+| P95         | Monolito ≈ **23% melhor**               |
+| Tempo Total | Monolito ≈ **22,6% mais rápido**        |
+
+### Análise
+
+Os dois sistemas passaram no teste sem erros (500/500 requisições).
+
+O Monolito apresentou melhor desempenho em todos os indicadores observados:
+
+Menor latência média.
+Menor latência nos percentis P90 e P95.
+Maior throughput.
+Menor duração total do teste.
+
+Isso é esperado. Em uma aplicação modularizada existe um pequeno custo adicional causado por:
+
+Mais camadas de abstração.
+Injeção de dependências.
+Separação em serviços, casos de uso e repositórios.
+Mais objetos sendo instanciados durante o fluxo.
+
+Por outro lado, a diferença observada (≈17% na média) não é grande. Considerando os ganhos de organização, manutenibilidade e escalabilidade do código, o resultado do Monolito Modular ainda é bastante próximo do monolito tradicional.
