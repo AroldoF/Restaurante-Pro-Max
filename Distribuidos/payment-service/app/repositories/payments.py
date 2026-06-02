@@ -33,8 +33,5 @@ class PaymentRepository:
     def change_status(self, payment: Payment, status: PaymentStatus) -> Payment:
         payment.status = status
 
-        self.session.commit()
-        self.session.refresh(payment)
-
         return payment
         

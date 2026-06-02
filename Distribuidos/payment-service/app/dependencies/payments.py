@@ -20,6 +20,7 @@ def get_payment_service(session: SessionDep, event_publisher: PublisherDep) -> P
     order_integration = OrdersIntegrations(base_url=settings.ORDER_API_URL)
     
     return PaymentService(
+        session=session,
         repository=payment_repository, 
         order_integration=order_integration,
         event_publisher=event_publisher
