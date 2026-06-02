@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   
+      - "15672:15672" 
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  payment-service:
+    build: ./payment-service  
+    container_name: payment-service
+    ports:
+      - "8009:8009" 
+    environment:
+      - DATABASE_URL=sqlite:///payments.db  
+      - ORDER_API_URL=http://order-service:8001 
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy 
+
+  notification-service:
+    build: ./notification-service 
+    container_name: notification-service
+    ports:
+      - "8010:8010" 
+    environment:
+      - DATABASE_URL=sqlite:///notification.db 
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
