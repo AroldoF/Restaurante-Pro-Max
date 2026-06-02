@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from ..schemas.payments import PaymentDetail, PaymentCreate
 from http import HTTPStatus
-from dependencies.payments import PaymentServiceDep
+from app.dependencies.payments import PaymentServiceDep
 
 router = APIRouter(prefix='/payments', tags=['Payments'])
 

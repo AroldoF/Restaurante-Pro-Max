@@ -3,7 +3,7 @@ from ..schemas.payments import PaymentCreate, PaymentCreatePrivate, PaymentStatu
 from fastapi import HTTPException
 from http import HTTPStatus
 from ..integrations.orders import OrdersIntegrations
-from messaging.events.payment_confirm import PaymentConfirmEvent
+from app.messaging.events.payment_confirm import PaymentConfirmEvent
 from dataclasses import asdict
 from infra.messaging.publisher import RabbitMQPublisher
 from infra.messaging.constants import PAYMENT_ROUTING_KEY

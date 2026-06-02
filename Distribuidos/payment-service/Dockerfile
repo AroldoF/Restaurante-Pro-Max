@@ -9,7 +9,8 @@ RUN uv sync --no-dev
 
 COPY main.py .
 COPY app/ ./app/
+COPY infra/ ./infra/
 
-EXPOSE 8010
+EXPOSE 8009
 
-CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8010"]
+CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8009"]
