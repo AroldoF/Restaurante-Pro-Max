@@ -43,7 +43,7 @@ class PaymentService:
             )
         
         
-        total_amount = 10.00#self.order_integration.get_order_price(data.order_id)
+        total_amount = self.order_integration.get_order_price(data.order_id)
 
         data_payment = PaymentCreatePrivate(
             **data.model_dump(),
