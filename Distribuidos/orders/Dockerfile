@@ -10,6 +10,6 @@ RUN uv sync --no-dev
 COPY main.py .
 COPY src/ ./src/
 
-EXPOSE 8001
+EXPOSE 8002
 
-CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8002"]

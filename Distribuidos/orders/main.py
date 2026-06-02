@@ -18,9 +18,9 @@ app = FastAPI(
 )
 
 
-@app.get("/health", tags=["Health"])
-def health_check():
-    return {"status": "ok", "service": "orders-service"}
+# @app.get("/health", tags=["Health"])
+# def health_check():
+#     return {"status": "ok", "service": "orders-service"}
 
 
 app.include_router(orders_router)
