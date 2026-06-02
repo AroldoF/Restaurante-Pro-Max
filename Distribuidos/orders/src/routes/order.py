@@ -22,7 +22,7 @@ def list_orders(service: OrderService = Depends(get_order_service)):
     return service.list()
 
 
-@router.get("/{order_id}/", response_model=OrderDetail)
+@router.get("/{order_id}", response_model=OrderDetail)
 def get_order(order_id: int, service: OrderService = Depends(get_order_service)):
     return service.get_by_id(order_id)
 
