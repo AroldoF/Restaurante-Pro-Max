@@ -1,7 +1,9 @@
 import httpx
+import os 
 from ..schemas.order import ItemResponse, ItemStockReduce
 
-ITEMS_SERVICE_URL = "http://localhost:8001"
+
+ITEMS_SERVICE_URL = os.getenv("ITEMS_SERVICE_URL", "http://localhost:8001")
 
 
 class ItemsClient:
@@ -9,10 +11,6 @@ class ItemsClient:
         self.base_url = base_url
 
     def get_items_by_ids(self, item_ids: list[int]) -> list[ItemResponse]:
-        """
-        Busca os dados de múltiplos itens no items-service.
-        Usado para calcular o total_amount do pedido.
-        """
         items = []
         with httpx.Client() as client:
             for item_id in item_ids:
@@ -24,10 +22,6 @@ class ItemsClient:
         return items
 
     def reduce_stock(self, reductions: list[ItemStockReduce]) -> None:
-        """
-        Envia uma lista de {item_id, quantity} para o items-service
-        reduzir o estoque. Chamado quando um pedido é finalizado.
-        """
         with httpx.Client() as client:
             response = client.patch(
                 f"{self.base_url}/items/stock/reduce/",
